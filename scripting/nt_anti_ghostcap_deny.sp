@@ -17,7 +17,7 @@ public Plugin myinfo = {
     description = "If the last living player of a team suicides (or gets \
 posthumously teamkilled) to prevent a ghost cap, treat it as if the ghost cap happened.",
     version     = PLUGIN_VERSION,
-    url         = "https://gist.github.com/Rainyan/9de9d76060288bb06b4c876f5343edb7"
+    url         = "https://github.com/Rainyan/sourcemod-nt-anti-cap-deny"
 };
 
 public void OnPluginStart()
