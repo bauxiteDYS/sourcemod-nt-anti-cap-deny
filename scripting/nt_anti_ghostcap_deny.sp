@@ -252,6 +252,7 @@ public Action Timer_AwardXP(Handle timer)
                     // This should never happen since we do GetClientOfUserId,
                     // but adding a sanity check for now to catch any weirdness.
                     LogError("Got invalid client %d at Timer_AwardXP!", client);
+                    continue;
                 }
                 SetPlayerXP(client, new_xp);
                 PrintToChat(client, "%s You received %d XP.", PLUGIN_TAG, new_xp - prev_xp);
