@@ -207,8 +207,8 @@ void AwardGhostCapXPToTeam(int team)
 
     if (award_xp_total != 0) {
         // Note: remember to update alloc size if you update the message format below!
-        decl String:awardMessage[134 + 1];
-        if (Format(awardMessage, sizeof(awardMessage), "%s Enemy suicided vs. ghost carrier; \
+        decl String:award_message[134 + 1];
+        if (Format(award_message, sizeof(award_message), "%s Enemy suicided vs. ghost carrier; \
 awarding capture to team %s.\n%s Awarded %d XP total to %d player%s",
             PLUGIN_TAG,
             (team == TEAM_JINRAI ? "Jinrai" : "NSF"),
@@ -220,8 +220,8 @@ awarding capture to team %s.\n%s Awarded %d XP total to %d player%s",
             ThrowError("Failed to format award message");
         }
 
-        PrintToChatAll(awardMessage);
-        PrintToConsoleAll(awardMessage);
+        PrintToChatAll(award_message);
+        PrintToConsoleAll(award_message);
 
         CreateTimer(1.0, Timer_AwardXP);
     } else if (dp_lateXpAwards != null) {
@@ -246,6 +246,7 @@ public Action Timer_AwardXP(Handle timer)
     // Actually award the XP only if there hasn't been a reset.
     if (!game_has_been_reset) {
         dp_lateXpAwards.Reset();
+        decl String:award_message[36 + 1];
         while (dp_lateXpAwards.IsReadable()) {
             int client = GetClientOfUserId(dp_lateXpAwards.ReadCell());
             int prev_xp = dp_lateXpAwards.ReadCell();
@@ -261,14 +262,13 @@ public Action Timer_AwardXP(Handle timer)
                 SetPlayerXP(client, new_xp);
 
                 // Note: remember to update alloc size if you update the message format below!
-                decl String:awardMessage[36 + 1];
-                if (Format(awardMessage, sizeof(awardMessage), "%s You received %d XP.",
+                if (Format(award_message, sizeof(award_message), "%s You received %d XP.",
                     PLUGIN_TAG, new_xp - prev_xp) == 0)
                 {
                     ThrowError("Failed to format award message");
                 }
-                PrintToChat(client, awardMessage);
-                PrintToConsole(client, awardMessage);
+                PrintToChat(client, award_message);
+                PrintToConsole(client, award_message);
             }
         }
     }
