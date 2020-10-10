@@ -73,10 +73,9 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
         return;
     }
 
-    // Doesn't matter whether it's suicide or teamkill in this context.
-    bool is_suicide_or_teamkill = (victim_team == GetClientTeam(attacker));
-
-    if (!is_suicide_or_teamkill) {
+    // Doesn't matter if it's a suicide or teamkill in this context,
+    // but if the victim's team differs from the attacker's, it was neither.
+    if (!(victim_team == GetClientTeam(attacker))) {
         return;
     }
 
