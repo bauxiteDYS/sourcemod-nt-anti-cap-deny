@@ -72,9 +72,6 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
     // This was not the last player of this team; can't be a ghost cap deny.
     if (num_living_in_victim_team != 0) {
-        if (num_living_in_victim_team < 0) {
-            ThrowError("Num living reported < 0");
-        }
         return;
     }
 
