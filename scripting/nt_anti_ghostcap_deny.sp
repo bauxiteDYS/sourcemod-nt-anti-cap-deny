@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.7"
+#define PLUGIN_VERSION "0.8"
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
 
 DataPack dp_lateXpAwards = null;
