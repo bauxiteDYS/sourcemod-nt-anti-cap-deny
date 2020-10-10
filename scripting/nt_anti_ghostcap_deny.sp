@@ -4,8 +4,12 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.8"
+#define PLUGIN_VERSION "0.9"
+
+// Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
+// Length of the PLUGIN_TAG text.
+#define PLUGIN_TAG_STRLEN 15
 
 DataPack dp_lateXpAwards = null;
 
@@ -201,7 +205,7 @@ void AwardGhostCapXPToTeam(int team)
 
     if (award_xp_total != 0) {
         // Note: remember to update alloc size if you update the message format below!
-        decl String:award_message[134 + 1];
+        decl String:award_message[PLUGIN_TAG_STRLEN + 120 + 1];
         if (Format(award_message, sizeof(award_message), "%s Enemy suicided vs. ghost carrier; \
 awarding capture to team %s.\n%s Awarded %d XP total to %d player%s",
             PLUGIN_TAG,
@@ -242,7 +246,7 @@ public Action Timer_AwardXP(Handle timer)
     // Actually award the XP only if there hasn't been a reset.
     if (!game_has_been_reset) {
         dp_lateXpAwards.Reset();
-        decl String:award_message[36 + 1];
+        decl String:award_message[PLUGIN_TAG_STRLEN + 20 + 1];
         while (dp_lateXpAwards.IsReadable()) {
             int client = GetClientOfUserId(dp_lateXpAwards.ReadCell());
             int prev_xp = dp_lateXpAwards.ReadCell();
