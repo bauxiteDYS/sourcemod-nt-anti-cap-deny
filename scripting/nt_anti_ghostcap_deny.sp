@@ -265,6 +265,8 @@ public Action Timer_AwardXP(Handle timer)
                 if (Format(award_message, sizeof(award_message), "%s You received %d XP.",
                     PLUGIN_TAG, new_xp - prev_xp) == 0)
                 {
+                    delete dp_lateXpAwards;
+                    dp_lateXpAwards = null;
                     ThrowError("Failed to format award message");
                 }
                 PrintToChat(client, award_message);
