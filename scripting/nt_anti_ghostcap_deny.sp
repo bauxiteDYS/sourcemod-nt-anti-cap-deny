@@ -259,8 +259,16 @@ public Action Timer_AwardXP(Handle timer)
                     continue;
                 }
                 SetPlayerXP(client, new_xp);
-                PrintToChat(client, "%s You received %d XP.", PLUGIN_TAG, new_xp - prev_xp);
-                PrintToConsole(client, "%s You received %d XP.", PLUGIN_TAG, new_xp - prev_xp);
+
+                // Note: remember to update alloc size if you update the message format below!
+                decl String:awardMessage[36 + 1];
+                if (Format(awardMessage, sizeof(awardMessage), "%s You received %d XP.",
+                    PLUGIN_TAG, new_xp - prev_xp) == 0)
+                {
+                    ThrowError("Failed to format award message");
+                }
+                PrintToChat(client, awardMessage);
+                PrintToConsole(client, awardMessage);
             }
         }
     }
