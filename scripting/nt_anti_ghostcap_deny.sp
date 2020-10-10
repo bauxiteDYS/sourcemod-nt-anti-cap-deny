@@ -217,6 +217,8 @@ awarding capture to team %s.\n%s Awarded %d XP total to %d player%s",
             num_award_clients,
             num_award_clients == 1 ? "." : "s.") == 0) // "player/players" plural
         {
+            delete dp_lateXpAwards;
+            dp_lateXpAwards = null;
             ThrowError("Failed to format award message");
         }
 
