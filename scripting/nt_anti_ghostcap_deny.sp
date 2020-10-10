@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.5"
+#define PLUGIN_VERSION "0.6"
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
 
 DataPack dp_lateXpAwards = null;
@@ -66,8 +66,9 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
     int victim_team = GetClientTeam(victim);
 
-    // We haven't processed our living state change yet, so subtract one from the count.
-    int num_living_in_victim_team = GetNumLivingPlayersInTeam(victim_team) - 1;
+    // We don't have guarantee of having processed the victim living status state
+    // change yet, so ignoring victim from this team count.
+    int num_living_in_victim_team = GetNumLivingPlayersInTeam(victim_team, victim);
 
     // This was not the last player of this team; can't be a ghost cap deny.
     if (num_living_in_victim_team != 0) {
@@ -99,10 +100,13 @@ bool IsGameRoundActive()
     return GameRules_GetProp("m_iGameState") == 2;
 }
 
-int GetNumLivingPlayersInTeam(int team)
+int GetNumLivingPlayersInTeam(int team, int ignore_client = 0)
 {
     int num_living = 0;
     for (int client = 1; client <= MaxClients; ++client) {
+        if (client == ignore_client) {
+            continue;
+        }
         if (!IsValidClient(client)) {
             continue;
         }
