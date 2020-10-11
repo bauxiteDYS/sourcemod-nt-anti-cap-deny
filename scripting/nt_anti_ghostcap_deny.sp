@@ -187,6 +187,10 @@ void AwardGhostCapXPToTeam(int team)
 
         if (award_xp != 0) {
             if (award_xp < 0) {
+                if (dp_lateXpAwards) {
+                    delete dp_lateXpAwards;
+                    dp_lateXpAwards = null;
+                }
                 ThrowError("Negative award XP");
             }
 
