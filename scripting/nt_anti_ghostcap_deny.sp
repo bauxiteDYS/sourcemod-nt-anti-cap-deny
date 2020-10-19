@@ -287,13 +287,6 @@ public Action Timer_AwardXP(Handle timer)
 			if (award_amount <= 0) {
 				continue;
 			}
-			
-			if (!IsValidClient(client)) {
-				// This should never happen since we do GetClientOfUserId,
-				// but adding a sanity check for now to catch any weirdness.
-				LogError("Got invalid client %d at Timer_AwardXP!", client);
-				continue;
-			}
 
 			if (!g_cvarSimulate.BoolValue) {
 				SetPlayerXP(client, GetPlayerXP(client) + award_amount);
