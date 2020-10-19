@@ -265,7 +265,8 @@ public Action Timer_AwardXP(Handle timer)
 					continue;
 				}
 
-				SetPlayerXP(client, new_xp);
+				int extra_xp_earned = new_xp - prev_xp;
+				SetPlayerXP(client, GetPlayerXP(client) + extra_xp_earned);
 
 				// Note: remember to update alloc size if you update the message format below!
 				if (Format(award_message, sizeof(award_message), "%s You received %d XP.",
