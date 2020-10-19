@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.9"
+#define PLUGIN_VERSION "1.0"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
