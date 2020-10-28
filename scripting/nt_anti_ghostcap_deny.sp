@@ -11,6 +11,8 @@
 // Length of the PLUGIN_TAG text.
 #define PLUGIN_TAG_STRLEN 15
 
+// Sound effect to use on the deny event.
+// Can be turned on/off with a cvar.
 #define SFX_NOTIFY "player/CPcaptured.wav"
 
 // If defined, log some debug to LOG_PATH.
@@ -20,6 +22,8 @@
 DataPack dp_lateXpAwards = null;
 
 bool b_IsCurrentMapCtg = false;
+
+ConVar g_hCvar_UseSoundFx = null;
 
 public Plugin myinfo = {
 	name		= "NEOTOKYO° Anti Ghost Cap Deny",
@@ -38,6 +42,9 @@ public void OnPluginStart()
 
 	CreateConVar("sm_nt_anti_ghost_cap_deny_version", PLUGIN_VERSION,
 		"NEOTOKYO° Anti Ghost Cap Deny plugin version.", FCVAR_DONTRECORD);
+
+	g_hCvar_UseSoundFx = CreateConVar("sm_nt_anti_ghost_cap_deny_sfx", "1",
+		"Whether to play sound FX on the cap deny event.");
 }
 
 public void OnMapStart()
@@ -224,7 +231,9 @@ void AwardGhostCapXPToTeam(int team)
 		return;
 	}
 
-	EmitSoundToAll(SFX_NOTIFY);
+	if (g_hCvar_UseSoundFx.BoolValue) {
+		EmitSoundToAll(SFX_NOTIFY);
+	}
 
 	decl String:msg1[PLUGIN_TAG_STRLEN + 100 + 1];
 	decl String:msg2[PLUGIN_TAG_STRLEN + 40 + 1];
