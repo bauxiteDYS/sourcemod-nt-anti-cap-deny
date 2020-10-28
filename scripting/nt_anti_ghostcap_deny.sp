@@ -4,20 +4,20 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.0"
+#define PLUGIN_VERSION "1.1"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
 // Length of the PLUGIN_TAG text.
 #define PLUGIN_TAG_STRLEN 15
 
+// If defined, log some debug to LOG_PATH.
 #define LOG_DEBUG
+#define LOG_PATH "addons/sourcemod/logs/nt_anti_ghostcap_deny.log"
 
 DataPack dp_lateXpAwards = null;
 
 bool b_IsCurrentMapCtg = false;
-
-ConVar g_cvarSimulate = null;
 
 public Plugin myinfo = {
 	name		= "NEOTOKYO° Anti Ghost Cap Deny",
@@ -36,9 +36,6 @@ public void OnPluginStart()
 
 	CreateConVar("sm_nt_anti_ghost_cap_deny_version", PLUGIN_VERSION,
 		"NEOTOKYO° Anti Ghost Cap Deny plugin version.", FCVAR_DONTRECORD);
-	
-	g_cvarSimulate = CreateConVar("sm_nt_anti_ghost_cap_deny_dryrun", "0",
-		"Only simulate the behaviour for debug, without actually changing XP.");
 }
 
 public void OnMapStart()
@@ -68,13 +65,13 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 	int victim_userid = event.GetInt("userid");
 	int victim = GetClientOfUserId(victim_userid);
-	
+
 	if (victim == 0) {
 		return;
 	}
-	
+
 	int attacker_userid = event.GetInt("attacker");
-	
+
 	// Deaths by gravity etc. are attributed to userid 0 (world).
 	bool was_suicide = (attacker_userid == 0 || attacker_userid == victim_userid);
 
@@ -216,32 +213,24 @@ void AwardGhostCapXPToTeam(int team)
 
 	if (award_xp_total != 0) {
 		decl String:msg1[PLUGIN_TAG_STRLEN + 100 + 1];
-		decl String:msg2[PLUGIN_TAG_STRLEN + 35 + 1];
-		
+		decl String:msg2[PLUGIN_TAG_STRLEN + 40 + 1];
+
 		Format(msg1, sizeof(msg1),
 			"%s Last player of %s suicided vs. ghost carrier; awarding capture to team %s.",
 			PLUGIN_TAG,
 			(team == TEAM_JINRAI ? "NSF" : "Jinrai"),
 			(team == TEAM_JINRAI ? "Jinrai" : "NSF"));
-		
-		Format(msg2, sizeof(msg2), "%s Awarded %d XP total to %d player%s",
-			PLUGIN_TAG, award_xp_total, num_award_clients,
-			(num_award_clients == 1 ? "." : "s.")); // "player/players" plural
 
-		if (g_cvarSimulate.BoolValue) {
-			for (int i = 1; i <= MaxClients; ++i) {
-				if (IsAdmin(i)) {
-					PrintToConsole(i, "[ADMIN DEBUG] : %s\n%s", msg1, msg2);
-				}
-			}
-		} else {
-			PrintToChatAll(msg1);
-			PrintToChatAll(msg2);
+		Format(msg2, sizeof(msg2), "%s Awarding capture rank-up to %d player%s",
+			PLUGIN_TAG, num_award_clients,
+			(num_award_clients == 1 ? "." : "s.")); // -s plural postfix
 
-			PrintToConsoleAll(msg1);
-			PrintToConsoleAll(msg2);
-		}
-		
+		PrintToChatAll(msg1);
+		PrintToChatAll(msg2);
+
+		PrintToConsoleAll(msg1);
+		PrintToConsoleAll(msg2);
+
 #if defined(LOG_DEBUG)
 		PrintToDebug(msg1);
 		PrintToDebug(msg2);
@@ -271,7 +260,7 @@ public Action Timer_AwardXP(Handle timer)
 	// Actually award the XP only if there hasn't been a reset.
 	if (!game_has_been_reset) {
 		dp_lateXpAwards.Reset();
-		decl String:award_message[PLUGIN_TAG_STRLEN + 20 + 1];
+		decl String:award_message[PLUGIN_TAG_STRLEN + 26 + 1];
 		while (dp_lateXpAwards.IsReadable()) {
 			int client = GetClientOfUserId(dp_lateXpAwards.ReadCell());
 			int client_prev_xp = dp_lateXpAwards.ReadCell();
@@ -279,34 +268,31 @@ public Action Timer_AwardXP(Handle timer)
 			if (client == 0) {
 				continue;
 			}
-			
-			// Subtract one to account for the default round win +1 XP
-			// that we don't want to award on top of the capture award.
-			int award_amount = (GetNextRankXP(client_prev_xp) - client_prev_xp) - 1;
-			
-			if (award_amount <= 0) {
+
+			int current_xp = GetPlayerXP(client);
+			int next_xp = GetNextRankXP(client_prev_xp);
+
+			if (current_xp >= next_xp) {
 				continue;
 			}
 
-			if (!g_cvarSimulate.BoolValue) {
-				SetPlayerXP(client, GetPlayerXP(client) + award_amount);
+			SetPlayerXP(client, next_xp);
 
-				// Note: remember to update alloc size if you update the message format below!
-				if (Format(award_message, sizeof(award_message), "%s You received %d XP.",
-					PLUGIN_TAG,
-					(award_amount + 1) // +1 because we're offsetting the award. See var assignment for comment.
-					) == 0)
-				{
-					delete dp_lateXpAwards;
-					dp_lateXpAwards = null;
-					ThrowError("Failed to format award message");
-				}
-				PrintToChat(client, award_message);
-				PrintToConsole(client, award_message);
-#if defined(LOG_DEBUG)
-				PrintToDebug("Award for %d: %s", client, award_message);
-#endif
+			// Note: remember to update alloc size if you update the message format below!
+			if (Format(award_message, sizeof(award_message), "%s You received %d extra XP.",
+				PLUGIN_TAG,
+				(next_xp - current_xp)
+				) == 0)
+			{
+				delete dp_lateXpAwards;
+				dp_lateXpAwards = null;
+				ThrowError("Failed to format award message");
 			}
+			PrintToChat(client, award_message);
+			PrintToConsole(client, award_message);
+#if defined(LOG_DEBUG)
+			PrintToDebug("Award for %d: \"%s\"", client, award_message);
+#endif
 		}
 	}
 
@@ -352,20 +338,15 @@ bool IsCurrentMapCtg()
 	return false;
 }
 
-bool IsAdmin(int client)
-{
-	return (IsClientConnected(client) && GetAdminFlag(GetUserAdmin(client), Admin_Generic));
-}
-
 #if defined(LOG_DEBUG)
 void PrintToDebug(const char [] msg, any ...)
 {
-	decl String:buffer[512];
+	decl String:buffer[256];
 	int bytes = VFormat(buffer, sizeof(buffer), msg, 2);
 	if (bytes <= 0) {
 		ThrowError("VFormat failed on: %s", msg);
 	}
 
-	LogToFile("addons/sourcemod/logs/nt_anti_ghostcap_deny.log", buffer);
+	LogToFile(LOG_PATH, buffer);
 }
 #endif
