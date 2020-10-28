@@ -11,6 +11,8 @@
 // Length of the PLUGIN_TAG text.
 #define PLUGIN_TAG_STRLEN 15
 
+#define SFX_NOTIFY "player/CPcaptured.wav"
+
 // If defined, log some debug to LOG_PATH.
 #define LOG_DEBUG
 #define LOG_PATH "addons/sourcemod/logs/nt_anti_ghostcap_deny.log"
@@ -40,6 +42,10 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
+	if (!PrecacheSound(SFX_NOTIFY)) {
+		SetFailState("Failed to precache sound: \"%s\"", SFX_NOTIFY);
+	}
+
 	b_IsCurrentMapCtg = IsCurrentMapCtg();
 }
 
@@ -211,36 +217,40 @@ void AwardGhostCapXPToTeam(int team)
 		}
 	}
 
-	if (award_xp_total != 0) {
-		decl String:msg1[PLUGIN_TAG_STRLEN + 100 + 1];
-		decl String:msg2[PLUGIN_TAG_STRLEN + 40 + 1];
+	if (award_xp_total == 0) {
+		if (dp_lateXpAwards != null) {
+			SetFailState("DataPack handle dp_lateXpAwards is leaking");
+		}
+		return;
+	}
 
-		Format(msg1, sizeof(msg1),
-			"%s Last player of %s suicided vs. ghost carrier; awarding capture to team %s.",
-			PLUGIN_TAG,
-			(team == TEAM_JINRAI ? "NSF" : "Jinrai"),
-			(team == TEAM_JINRAI ? "Jinrai" : "NSF"));
+	EmitSoundToAll(SFX_NOTIFY);
 
-		Format(msg2, sizeof(msg2), "%s Awarding capture rank-up to %d player%s",
-			PLUGIN_TAG, num_award_clients,
-			(num_award_clients == 1 ? "." : "s.")); // -s plural postfix
+	decl String:msg1[PLUGIN_TAG_STRLEN + 100 + 1];
+	decl String:msg2[PLUGIN_TAG_STRLEN + 40 + 1];
 
-		PrintToChatAll(msg1);
-		PrintToChatAll(msg2);
+	Format(msg1, sizeof(msg1),
+		"%s Last player of %s suicided vs. ghost carrier; awarding capture to team %s.",
+		PLUGIN_TAG,
+		(team == TEAM_JINRAI ? "NSF" : "Jinrai"),
+		(team == TEAM_JINRAI ? "Jinrai" : "NSF"));
 
-		PrintToConsoleAll(msg1);
-		PrintToConsoleAll(msg2);
+	Format(msg2, sizeof(msg2), "%s Awarding capture rank-up to %d player%s",
+		PLUGIN_TAG, num_award_clients,
+		(num_award_clients == 1 ? "." : "s.")); // -s plural postfix
+
+	PrintToChatAll(msg1);
+	PrintToChatAll(msg2);
+
+	PrintToConsoleAll(msg1);
+	PrintToConsoleAll(msg2);
 
 #if defined(LOG_DEBUG)
-		PrintToDebug(msg1);
-		PrintToDebug(msg2);
+	PrintToDebug(msg1);
+	PrintToDebug(msg2);
 #endif
 
-		CreateTimer(1.0, Timer_AwardXP);
-	}
-	else if (dp_lateXpAwards != null) {
-		SetFailState("DataPack handle dp_lateXpAwards is leaking");
-	}
+	CreateTimer(1.0, Timer_AwardXP);
 }
 
 // Timer callback for awarding the "simulated ghost cap" XP to players,
