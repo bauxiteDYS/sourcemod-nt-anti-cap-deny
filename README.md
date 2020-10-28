@@ -6,3 +6,6 @@ A SourceMod plugin for Neotokyo which provides the following gameplay change:
 ## Compile dependencies
 * [SourceMod](https://www.sourcemod.net/) version 1.7 or newer (tested on version 1.10)
 * [Neotokyo include](https://github.com/softashell/sourcemod-nt-include) for SourceMod
+
+## ConVars
+* *sm_nt_anti_ghost_cap_deny_sfx* - Whether to play sound FX on the cap deny event.
