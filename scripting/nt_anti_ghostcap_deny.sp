@@ -280,7 +280,7 @@ public Action Timer_AwardXP(Handle timer)
 	if (!game_has_been_reset) {
 		dp_lateXpAwards.Reset();
 		decl String:award_message[PLUGIN_TAG_STRLEN + 26 + 1];
-		while (dp_lateXpAwards.IsReadable()) {
+		while (dp_lateXpAwards.IsReadable(view_as<int>(dp_lateXpAwards.Position))) {
 			int client = GetClientOfUserId(dp_lateXpAwards.ReadCell());
 			int client_prev_xp = dp_lateXpAwards.ReadCell();
 
