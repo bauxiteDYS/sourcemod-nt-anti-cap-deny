@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.1.1"
+#define PLUGIN_VERSION "1.1.2"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -372,8 +372,7 @@ void PrintToDebug(const char [] msg, any ...)
 
 // Backported from SourceMod/SourcePawn SDK for SM < 1.9 compatibility.
 // SourceMod (C)2004-2008 AlliedModders LLC.  All rights reserved.
-#if SOURCEMOD_V_MAJOR <= 1
-#if SOURCEMOD_V_MINOR < 9
+#if SOURCEMOD_V_MAJOR <= 1 && SOURCEMOD_V_MINOR < 9
 /**
  * Sends a message to every client's console.
  *
@@ -394,5 +393,4 @@ stock void PrintToConsoleAll(const char[] format, any ...)
 		}
 	}
 }
-#endif
 #endif
