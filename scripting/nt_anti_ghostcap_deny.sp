@@ -373,7 +373,7 @@ void PrintToDebug(const char [] msg, any ...)
 // Backported from SourceMod/SourcePawn SDK for SM < 1.9 compatibility.
 // SourceMod (C)2004-2008 AlliedModders LLC.  All rights reserved.
 #if SOURCEMOD_V_MAJOR <= 1
-#if SOURCEMOD_V_MINOR <= 9
+#if SOURCEMOD_V_MINOR < 9
 /**
  * Sends a message to every client's console.
  *
