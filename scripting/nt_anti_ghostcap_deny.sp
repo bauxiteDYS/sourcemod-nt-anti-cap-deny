@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.1"
+#define PLUGIN_VERSION "1.1.1"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -368,4 +368,31 @@ void PrintToDebug(const char [] msg, any ...)
 
 	LogToFile(LOG_PATH, buffer);
 }
+#endif
+
+// Backported from SourceMod/SourcePawn SDK for SM < 1.9 compatibility.
+// SourceMod (C)2004-2008 AlliedModders LLC.  All rights reserved.
+#if SOURCEMOD_V_MAJOR <= 1
+#if SOURCEMOD_V_MINOR <= 9
+/**
+ * Sends a message to every client's console.
+ *
+ * @param format        Formatting rules.
+ * @param ...           Variable number of format parameters.
+ */
+stock void PrintToConsoleAll(const char[] format, any ...)
+{
+	char buffer[254];
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i))
+		{
+			SetGlobalTransTarget(i);
+			VFormat(buffer, sizeof(buffer), format, 2);
+			PrintToConsole(i, "%s", buffer);
+		}
+	}
+}
+#endif
 #endif
