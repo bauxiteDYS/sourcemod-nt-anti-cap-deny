@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.1.3"
+#define PLUGIN_VERSION "1.1.4"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -283,7 +283,7 @@ public Action Timer_AwardXP(Handle timer)
 
 // This addresses a bug in specific 1.8 branch releases
 // where the function documentation didn't match implementation.
-#if SOURCEMOD_V_REV < 5992 && SOURCEMOD_V_MAJOR == 1 && SOURCEMOD_V_MINOR == 8
+#if SOURCEMOD_V_REV < 5992 && SOURCEMOD_V_REV >= 5535 && SOURCEMOD_V_MAJOR == 1 && SOURCEMOD_V_MINOR == 8
 		while (dp_lateXpAwards.IsReadable())
 #else
 		while (dp_lateXpAwards.IsReadable(4))
