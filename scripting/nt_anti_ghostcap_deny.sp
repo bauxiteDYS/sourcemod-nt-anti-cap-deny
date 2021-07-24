@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.1.2"
+#define PLUGIN_VERSION "1.1.3"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -280,7 +280,15 @@ public Action Timer_AwardXP(Handle timer)
 	if (!game_has_been_reset) {
 		dp_lateXpAwards.Reset();
 		decl String:award_message[PLUGIN_TAG_STRLEN + 26 + 1];
-		while (dp_lateXpAwards.IsReadable(4)) {
+
+// This addresses a bug in specific 1.8 branch releases
+// where the function documentation didn't match implementation.
+#if SOURCEMOD_V_REV < 5992 && SOURCEMOD_V_MAJOR == 1 && SOURCEMOD_V_MINOR == 8
+		while (dp_lateXpAwards.IsReadable())
+#else
+		while (dp_lateXpAwards.IsReadable(4))
+#endif
+		{
 			int client = GetClientOfUserId(dp_lateXpAwards.ReadCell());
 			int client_prev_xp = dp_lateXpAwards.ReadCell();
 
