@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.1.4"
+#define PLUGIN_VERSION "1.1.5"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -15,9 +15,11 @@
 // Can be turned on/off with a cvar.
 #define SFX_NOTIFY "player/CPcaptured.wav"
 
+#if(0)
 // If defined, log some debug to LOG_PATH.
 #define LOG_DEBUG
 #define LOG_PATH "addons/sourcemod/logs/nt_anti_ghostcap_deny.log"
+#endif
 
 DataPack dp_lateXpAwards = null;
 
@@ -61,7 +63,6 @@ public void OnMapEnd()
 	// Clear any pending XP awards from the final round of a map.
 	if (dp_lateXpAwards != null) {
 		delete dp_lateXpAwards;
-		dp_lateXpAwards = null;
 	}
 }
 
@@ -184,7 +185,6 @@ void AwardGhostCapXPToTeam(int team)
 
 	if (dp_lateXpAwards != null) {
 		delete dp_lateXpAwards;
-		dp_lateXpAwards = null;
 		LogError("Had dirty dp handle on AwardGhostCapXPToTeam; this should never happen.");
 	}
 
@@ -203,15 +203,7 @@ void AwardGhostCapXPToTeam(int team)
 		int next_xp = GetNextRankXP(client_prev_xp);
 		int award_xp = next_xp - client_prev_xp;
 
-		if (award_xp != 0) {
-			if (award_xp < 0) {
-				if (dp_lateXpAwards) {
-					delete dp_lateXpAwards;
-					dp_lateXpAwards = null;
-				}
-				ThrowError("Negative award XP");
-			}
-
+		if (award_xp > 0) {
 			if (dp_lateXpAwards == null) {
 				dp_lateXpAwards = new DataPack();
 			}
@@ -283,7 +275,7 @@ public Action Timer_AwardXP(Handle timer)
 
 // This addresses a bug in specific 1.8 branch releases
 // where the function documentation didn't match implementation.
-#if SOURCEMOD_V_REV < 5992 && SOURCEMOD_V_REV >= 5535 && SOURCEMOD_V_MAJOR == 1 && SOURCEMOD_V_MINOR == 8
+#if SOURCEMOD_V_MAJOR == 1 && SOURCEMOD_V_MINOR == 8 && SOURCEMOD_V_REV < 5992 && SOURCEMOD_V_REV >= 5535
 		while (dp_lateXpAwards.IsReadable())
 #else
 		while (dp_lateXpAwards.IsReadable(4))
@@ -312,7 +304,6 @@ public Action Timer_AwardXP(Handle timer)
 				) == 0)
 			{
 				delete dp_lateXpAwards;
-				dp_lateXpAwards = null;
 				ThrowError("Failed to format award message");
 			}
 			PrintToChat(client, award_message);
@@ -324,7 +315,6 @@ public Action Timer_AwardXP(Handle timer)
 	}
 
 	delete dp_lateXpAwards;
-	dp_lateXpAwards = null;
 
 	return Plugin_Stop;
 }
