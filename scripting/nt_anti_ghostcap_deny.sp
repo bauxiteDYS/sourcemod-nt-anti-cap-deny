@@ -29,9 +29,10 @@ ConVar g_hCvar_UseSoundFx = null;
 
 public Plugin myinfo = {
     name        = "NEOTOKYO° Anti Ghost Cap Deny",
-    author    = "Rain",
+    author      = "Rain",
     description = "If the last living player of a team suicides (or gets \
-posthumously teamkilled) to prevent a ghost cap, treat it as if the ghost cap happened.",
+posthumously teamkilled) to prevent a ghost cap, treat it as if the ghost \
+cap happened.",
     version     = PLUGIN_VERSION,
     url         = "https://github.com/Rainyan/sourcemod-nt-anti-cap-deny"
 };
@@ -95,10 +96,10 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
     int victim_team = GetClientTeam(victim);
 
-    // We don't have guarantee of having processed the victim living status state
-    // change yet, so ignoring victim from this team count.
+    // We don't have guarantee of having processed the victim living status
+	// state change yet, so ignoring victim from this team count.
     if (GetNumLivingPlayersInTeam(victim_team, victim) != 0) {
-        // This was not the last player of this team; can't be a ghost cap deny.
+        // This wasn't the last player of this team; can't be a ghost cap deny.
         return;
     }
 
