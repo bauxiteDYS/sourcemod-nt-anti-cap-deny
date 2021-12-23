@@ -97,7 +97,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
     int victim_team = GetClientTeam(victim);
 
     // We don't have guarantee of having processed the victim living status
-	// state change yet, so ignoring victim from this team count.
+    // state change yet, so ignoring victim from this team count.
     if (GetNumLivingPlayersInTeam(victim_team, victim) != 0) {
         // This wasn't the last player of this team; can't be a ghost cap deny.
         return;
