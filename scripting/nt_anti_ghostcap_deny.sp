@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.2.0"
+#define PLUGIN_VERSION "1.2.1"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -263,7 +263,7 @@ void AwardGhostCapXPToTeam(int team)
     PrintToDebug(msg2);
 #endif
 
-    CreateTimer(1.0, Timer_AwardXP);
+    CreateTimer(1.0, Timer_AwardXP, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 // Timer callback for awarding the "simulated ghost cap" XP to players,
