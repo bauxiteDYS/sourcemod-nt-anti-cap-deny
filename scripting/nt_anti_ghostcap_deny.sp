@@ -381,6 +381,7 @@ void PrintToDebug(const char [] msg, any ...)
 #endif
 
 // Backported from SourceMod/SourcePawn SDK for SM < 1.9 compatibility.
+// Used here under GPLv3 license: https://www.sourcemod.net/license.php
 // SourceMod (C)2004-2008 AlliedModders LLC.  All rights reserved.
 #if SOURCEMOD_V_MAJOR <= 1 && SOURCEMOD_V_MINOR < 9
 /**
