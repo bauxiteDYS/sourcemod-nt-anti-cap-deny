@@ -1,7 +1,7 @@
 # nt_anti_ghostcap_deny
 A SourceMod plugin for Neotokyo which provides the following gameplay change:
 
-*If the last living player of a team suicides (or gets posthumously teamkilled) to prevent a ghost capture, treat it as if the ghost capture happened.*
+*If the last living player of a team disconnects or suicides (or gets posthumously teamkilled) to prevent a ghost capture, treat it as if the ghost capture happened.*
 
 ## Compile dependencies
 * [SourceMod](https://www.sourcemod.net/) version 1.8 or newer. Tested on version 1.10, but newest stable version recommended.
