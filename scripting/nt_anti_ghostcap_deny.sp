@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.1.6"
+#define PLUGIN_VERSION "1.2.0"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -67,7 +67,15 @@ public void OnMapEnd()
     }
 }
 
-public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
+public void OnClientDisconnect(int client)
+{
+    int userid = GetClientUserId(client);
+    // Treat player disconnect the same as suicide,
+    // because the player effectively removed themselves from the round.
+    CheckForAntiCap(userid, userid);
+}
+
+void CheckForAntiCap(int victim_userid, int attacker_userid)
 {
     // Don't need to do anything if this isn't a CTG map.
     if (!b_IsCurrentMapCtg) {
@@ -78,23 +86,22 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
         return;
     }
 
-    int victim_userid = event.GetInt("userid");
     int victim = GetClientOfUserId(victim_userid);
-
     if (victim == 0) {
         return;
     }
 
-    int attacker_userid = event.GetInt("attacker");
-
     // Deaths by gravity etc. are attributed to userid 0 (world).
     bool was_suicide = (attacker_userid == 0 || attacker_userid == victim_userid);
-
     if (!was_suicide) {
         return;
     }
 
     int victim_team = GetClientTeam(victim);
+    // This can happen if we're handling a non-playerteam disconnect.
+    if (victim_team != TEAM_JINRAI && victim_team != TEAM_NSF) {
+        return;
+    }
 
     // We don't have guarantee of having processed the victim living status
     // state change yet, so ignoring victim from this team count.
@@ -104,12 +111,16 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
     }
 
     int opposing_team = GetOpposingTeam(victim_team);
-
     if (!IsTeamGhosting(opposing_team)) {
         return;
     }
 
     AwardGhostCapXPToTeam(opposing_team);
+}
+
+public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
+{
+    CheckForAntiCap(event.GetInt("userid"), event.GetInt("attacker"));
 }
 
 bool IsGameRoundActive()
