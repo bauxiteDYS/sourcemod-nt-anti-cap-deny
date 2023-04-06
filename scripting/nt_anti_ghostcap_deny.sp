@@ -4,7 +4,7 @@
 #include <sdktools>
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.2.1"
+#define PLUGIN_VERSION "1.3.0"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -178,10 +178,10 @@ bool IsWeaponGhost(int weapon)
         return false;
     }
 
-    // Not zero initializing this, because all NT weps have a classname
-    // longer than this. We assume any non -1 ent index we get is always
+    // "weapon_gh" + '\0' == strlen 10.
+    // We assume any non -1 ent index we get is always
     // a valid NT weapon ent index.
-    decl String:wepName[9 + 1]; // "weapon_gh" + '\0' == strlen 10
+    char wepName[9 + 1];
     if (!GetEntityClassname(weapon, wepName, sizeof(wepName))) {
         return false;
     }
@@ -239,8 +239,8 @@ void AwardGhostCapXPToTeam(int team)
         EmitSoundToAll(SFX_NOTIFY);
     }
 
-    decl String:msg1[PLUGIN_TAG_STRLEN + 100 + 1];
-    decl String:msg2[PLUGIN_TAG_STRLEN + 40 + 1];
+    char msg1[PLUGIN_TAG_STRLEN + 100 + 1];
+    char msg2[PLUGIN_TAG_STRLEN + 40 + 1];
 
     Format(msg1, sizeof(msg1),
         "%s Last player of %s suicided vs. ghost carrier; awarding capture to team %s.",
@@ -283,7 +283,7 @@ public Action Timer_AwardXP(Handle timer)
     // Actually award the XP only if there hasn't been a reset.
     if (!game_has_been_reset) {
         dp_lateXpAwards.Reset();
-        decl String:award_message[PLUGIN_TAG_STRLEN + 26 + 1];
+        char award_message[PLUGIN_TAG_STRLEN + 26 + 1];
 
 // This addresses a bug in specific 1.8 branch releases
 // where the function documentation didn't match implementation.
@@ -350,7 +350,7 @@ int GetOpposingTeam(int team)
 
 bool IsCurrentMapCtg()
 {
-    decl String:entName[15 + 1]; // strlen "neo_game_config" + '\0' = 16
+    char entName[15 + 1]; // strlen "neo_game_config" + '\0' = 16
     for (int ent = MaxClients + 1; ent <= GetMaxEntities(); ++ent) {
         if (!IsValidEntity(ent)) {
             continue;
