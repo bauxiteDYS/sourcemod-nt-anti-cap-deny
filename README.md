@@ -15,5 +15,3 @@ A SourceMod plugin for Neotokyo which provides the following gameplay change:
 * sm_nt_anti_ghost_cap_deny_sfx
   * Default value: `1`
   * Description: `Whether to play sound FX on the cap deny event.`
-  * Bit flags: ``
-
