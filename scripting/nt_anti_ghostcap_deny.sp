@@ -5,7 +5,7 @@
 
 #include <neotokyo>
 
-#define PLUGIN_VERSION "1.3.0"
+#define PLUGIN_VERSION "1.3.1"
 
 // Remember to update PLUGIN_TAG_STRLEN if you change this tag.
 #define PLUGIN_TAG "[ANTI CAP-DENY]"
@@ -88,7 +88,7 @@ void CheckForAntiCap(int victim_userid, int attacker_userid)
     }
 
     int victim = GetClientOfUserId(victim_userid);
-    if (victim == 0) {
+    if (victim == 0 || !IsClientInGame(victim)) {
         return;
     }
 
@@ -297,7 +297,7 @@ public Action Timer_AwardXP(Handle timer)
             int client = GetClientOfUserId(dp_lateXpAwards.ReadCell());
             int client_prev_xp = dp_lateXpAwards.ReadCell();
 
-            if (client == 0) {
+            if (client == 0 || !IsClientInGame(client)) {
                 continue;
             }
 
