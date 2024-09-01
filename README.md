@@ -5,7 +5,7 @@ A SourceMod plugin for Neotokyo which provides the following gameplay change:
 
 ## Compile dependencies
 * [SourceMod](https://www.sourcemod.net/) version 1.8 or newer.
-* [Neotokyo include](https://github.com/softashell/sourcemod-nt-include) for SourceMod
+* [Neotokyo include](https://github.com/softashell/sourcemod-nt-include) for SourceMod, version 1.3 or newer
 
 ## ConVars
 * sm_nt_anti_ghost_cap_deny_version
