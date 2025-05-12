@@ -8,7 +8,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "2.0.0"
+#define PLUGIN_VERSION "2.1.0"
 
 #if(0)
 // If defined, log some debug to LOG_PATH.
@@ -16,8 +16,12 @@
 #define LOG_PATH "addons/sourcemod/logs/nt_anti_ghostcap_deny.log"
 #endif
 
+int g_iNewXP[NEO_MAXPLAYERS + 1];
+int g_iFlatXP;
+bool g_bRewardDead;
+ConVar g_hCvar_GhostReward = null;
+ConVar g_hCvar_GhostRewardDead = null;
 ConVar g_hCvar_UseSoundFx = null;
-DataPack g_dpLateXpAwards = null;
 
 char g_szPluginTag[] = "[ANTI CAP-DENY]";
 // Sound effect to use on the deny event. Can be turned on/off with a cvar.
@@ -56,12 +60,20 @@ public void OnMapStart()
     if (!PrecacheSound(g_szSfxNotify)) {
         SetFailState("Failed to precache sound: \"%s\"", g_szSfxNotify);
     }
-}
+    
+    // if nt_wincond is late-loaded or unloaded then this plugin will not function properly until next map
 
-public void OnMapEnd()
-{
-    // Clear any pending XP awards from the final round of a map.
-    delete g_dpLateXpAwards;
+    g_hCvar_GhostReward = FindConVar("sm_nt_wincond_ghost_reward");
+    g_hCvar_GhostRewardDead = FindConVar("sm_nt_wincond_ghost_reward_dead");
+
+    if(g_hCvar_GhostReward != null && g_hCvar_GhostRewardDead != null) {
+        g_iFlatXP = g_hCvar_GhostReward.IntValue;
+        g_bRewardDead = g_hCvar_GhostRewardDead.BoolValue;
+    }
+    else {
+        g_iFlatXP = 0;
+        g_bRewardDead = false;
+    }
 }
 
 public void OnClientDisconnect(int client)
@@ -184,13 +196,8 @@ bool IsWeaponGhost(int weapon)
 
 void AwardGhostCapXPToTeam(int team)
 {
-    int award_xp_total = 0;
     int num_award_clients = 0;
-
-    if (g_dpLateXpAwards != null) {
-        delete g_dpLateXpAwards;
-        LogError("Had dirty dp handle on AwardGhostCapXPToTeam; this should never happen.");
-    }
+    char award_message[sizeof(g_szPluginTag)-1 + 26 + 1];
 
     for (int client = 1; client <= MaxClients; ++client) {
         if (!IsValidClient(client)) {
@@ -199,32 +206,43 @@ void AwardGhostCapXPToTeam(int team)
         if (GetClientTeam(client) != team) {
             continue;
         }
-        if (!IsPlayerAlive(client)) {
+        if (!g_bRewardDead && !IsPlayerAlive(client)) {
             continue;
         }
 
         int client_prev_xp = GetPlayerXP(client);
-        int next_xp = GetNextRankXP(client_prev_xp);
-        int award_xp = next_xp - client_prev_xp;
+        int next_xp;
+        int award_xp;
 
-        if (award_xp > 0) {
-            if (g_dpLateXpAwards == null) {
-                g_dpLateXpAwards = new DataPack();
-            }
-
-            g_dpLateXpAwards.WriteCell(GetClientUserId(client));
-            g_dpLateXpAwards.WriteCell(client_prev_xp);
-
-            award_xp_total += award_xp;
-            ++num_award_clients;
+        if(g_iFlatXP > 0) {
+            next_xp = g_iFlatXP + client_prev_xp;
+            award_xp = g_iFlatXP;
         }
-    }
-
-    if (award_xp_total == 0) {
-        if (g_dpLateXpAwards != null) {
-            SetFailState("DataPack handle g_dpLateXpAwards is leaking");
+        else {
+            next_xp = GetNextRankXP(client_prev_xp);
+            award_xp = next_xp - client_prev_xp;
         }
-        return;
+
+        if (award_xp <= 0) {
+            continue;
+        }
+            
+        ++num_award_clients;
+
+        g_iNewXP[client] = next_xp;
+
+        CreateTimer(0.3, Timer_AwardXP, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
+
+        // Note: remember to update alloc size if you update the message format below!
+        if (Format(award_message, sizeof(award_message), "%s You received %d XP.", g_szPluginTag, award_xp) == 0) {
+            ThrowError("Failed to format award message");
+        }
+        PrintToChat(client, award_message);
+        PrintToConsole(client, award_message);
+#if defined(LOG_DEBUG)
+        PrintToDebug("Award for %d: \"%s\"", client, award_message);
+#endif
+
     }
 
     if (g_hCvar_UseSoundFx.BoolValue) {
@@ -240,8 +258,8 @@ void AwardGhostCapXPToTeam(int team)
         (team == TEAM_JINRAI ? "NSF" : "Jinrai"),
         (team == TEAM_JINRAI ? "Jinrai" : "NSF"));
 
-    Format(msg2, sizeof(msg2), "%s Awarding capture rank-up to %d player%s",
-        g_szPluginTag, num_award_clients,
+    Format(msg2, sizeof(msg2), "%s Awarding capture %s to %d player%s",
+        g_szPluginTag, g_iFlatXP == 0 ? "rank-up" : "points", num_award_clients,
         (num_award_clients == 1 ? "." : "s.")); // -s plural postfix
 
     PrintToChatAll(msg1);
@@ -249,77 +267,23 @@ void AwardGhostCapXPToTeam(int team)
 
     PrintToConsoleAll(msg1);
     PrintToConsoleAll(msg2);
-
+    
 #if defined(LOG_DEBUG)
     PrintToDebug(msg1);
     PrintToDebug(msg2);
 #endif
-
-    CreateTimer(1.0, Timer_AwardXP, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-// Timer callback for awarding the "simulated ghost cap" XP to players,
-// if any has been queued up.
-public Action Timer_AwardXP(Handle timer)
+public Action Timer_AwardXP(Handle timer, int userid)
 {
-    // This can happen if we change levels before this callback fires.
-    if (g_dpLateXpAwards == null) {
+    int client = GetClientOfUserId(userid);
+    
+    if(client <= 0 || !IsValidClient(client)) {
         return Plugin_Stop;
     }
-
-    // If we have an active round at this point, something external
-    // (eg. admin command) has reset the match state before this
-    // callback had a chance to fire.
-    bool game_has_been_reset = IsGameRoundActive();
-
-    // Actually award the XP only if there hasn't been a reset.
-    if (!game_has_been_reset) {
-        g_dpLateXpAwards.Reset();
-        char award_message[sizeof(g_szPluginTag)-1 + 26 + 1];
-
-// This addresses a bug in specific 1.8 branch releases
-// where the function documentation didn't match implementation.
-#if SOURCEMOD_V_MAJOR == 1 && SOURCEMOD_V_MINOR == 8 && SOURCEMOD_V_REV < 5992 && SOURCEMOD_V_REV >= 5535
-        while (g_dpLateXpAwards.IsReadable())
-#else
-        while (g_dpLateXpAwards.IsReadable(4))
-#endif
-        {
-            int client = GetClientOfUserId(g_dpLateXpAwards.ReadCell());
-            int client_prev_xp = g_dpLateXpAwards.ReadCell();
-
-            if (client == 0 || !IsClientInGame(client)) {
-                continue;
-            }
-
-            int current_xp = GetPlayerXP(client);
-            int next_xp = GetNextRankXP(client_prev_xp);
-
-            if (current_xp >= next_xp) {
-                continue;
-            }
-
-            SetPlayerXP(client, next_xp);
-
-            // Note: remember to update alloc size if you update the message format below!
-            if (Format(award_message, sizeof(award_message), "%s You received %d extra XP.",
-                g_szPluginTag,
-                (next_xp - current_xp)
-                ) == 0)
-            {
-                delete g_dpLateXpAwards;
-                ThrowError("Failed to format award message");
-            }
-            PrintToChat(client, award_message);
-            PrintToConsole(client, award_message);
-#if defined(LOG_DEBUG)
-            PrintToDebug("Award for %d: \"%s\"", client, award_message);
-#endif
-        }
-    }
-
-    delete g_dpLateXpAwards;
-
+    
+    SetPlayerXP(client, g_iNewXP[client]);
+    
     return Plugin_Stop;
 }
 
